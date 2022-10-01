@@ -1,0 +1,3 @@
+D:/UPIT-CTNU/ATESTAT/app/cmake-build-debug/CMakeFiles/app.dir
+D:/UPIT-CTNU/ATESTAT/app/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/UPIT-CTNU/ATESTAT/app/cmake-build-debug/CMakeFiles/rebuild_cache.dir

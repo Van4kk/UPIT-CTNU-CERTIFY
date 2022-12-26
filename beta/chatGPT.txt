@@ -1,0 +1,510 @@
+1. C++ program that uses a struct to process user data from a file and store the processed data in another file, using JSON as the file format.
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
+
+struct User {
+  std::string name;
+  int age;
+  std::vector<std::string> interests;
+};
+
+int main() {
+  std::vector<User> users; // Vector to store multiple user objects
+
+  // Read user data from a JSON file
+  std::ifstream user_file("users.json");
+  json user_data;
+  user_file >> user_data;
+
+  // Iterate over the JSON array and create a User object for each entry
+  for (json::const_iterator it = user_data["users"].begin(); it != user_data["users"].end(); ++it) {
+    User user;
+    user.name = (*it)["name"];
+    user.age = (*it)["age"];
+    user.interests = (*it)["interests"];
+    users.push_back(user);
+  }
+
+  // Process the user data (in this case, just add an "s" to each interest)
+  for (std::vector<User>::iterator it = users.begin(); it != users.end(); ++it) {
+    for (std::vector<std::string>::iterator it2 = (*it).interests.begin(); it2 != (*it).interests.end(); ++it2) {
+      (*it2) += "s";
+    }
+  }
+
+  // Write the processed user data to a new JSON file
+  json processed_data;
+  processed_data["users"] = users;
+  std::ofstream processed_file("processed_users.json");
+  processed_file << processed_data;
+
+  return 0;
+}
+
+
+2. C++11 program that implements a more complex calculator app with a console interface, instructions, a struct for operations, and a file for storing operations:
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <cmath>
+#include <fstream>
+
+// Struct for storing calculation history
+struct Calculation {
+  std::string operation;
+  std::vector<double> parameters;
+  double result;
+};
+
+// Function prototypes
+void print_instructions();
+bool is_valid_operation(const std::string& op);
+double calculate(const std::string& op, const std::vector<double>& params);
+void print_result(double result);
+void write_to_file(const Calculation& calc, std::ofstream& out);
+
+int main() {
+  // Print instructions
+  print_instructions();
+
+  // Open a file for storing calculation history
+  std::ofstream history_file("calculation_history.txt");
+
+  // Read and process input from the user
+  std::string operation;
+  std::vector<double> parameters;
+  double x;
+  while (std::cin >> operation) {
+    // Check if the operation is valid
+    if (!is_valid_operation(operation)) {
+      std::cout << "Invalid operation. Please try again." << std::endl;
+      continue;
+    }
+
+    // Read the parameters for the operation
+    parameters.clear();
+    while (std::cin >> x) {
+      parameters.push_back(x);
+    }
+
+    // Calculate the result of the operation
+    double result = calculate(operation, parameters);
+
+    // Print the result in a pretty way
+    print_result(result);
+
+    // Create a Calculation object and write it to the history file
+    Calculation calc;
+    calc.operation = operation;
+    calc.parameters = parameters;
+    calc.result = result;
+    write_to_file(calc, history_file);
+  }
+
+  // Close the history file
+  history_file.close();
+
+  return 0;
+}
+
+// Function definitions
+void print_instructions() {
+  std::cout << "Welcome to the calculator app!" << std::endl;
+  std::cout << "To perform a calculation, enter the operation followed by the parameters." << std::endl;
+  std::cout << "Supported operations: +, -, *, /" << std::endl;
+  std::cout << "For example: + 3 4" << std::endl;
+  std::cout << "Enter 'q' to quit the program." << std::endl
+}
+
+bool is_valid_operation(const std::string& op) {
+  // Check if the operation is one of the supported operations
+  return (op == "+" || op == "-" || op == "*" || op == "/");
+}
+
+double calculate(const std::string& op, const std::vector<double>& params) {
+  // Check if there are at least two parameters for the operation
+  if (params.size() < 2) {
+    std::cout << "Not enough parameters for the operation. Please try again." << std::endl;
+    return 0;
+  }
+
+  // Perform the calculation based on the operation
+  double result = params[0];
+  for (int i = 1; i < params.size(); i++) {
+    if (op == "+") {
+      result += params[i];
+    } else if (op == "-") {
+      result -= params[i];
+    } else if (op == "*") {
+      result *= params[i];
+    } else if (op == "/") {
+      // Check for division by zero
+      if (params[i] == 0) {
+        std::cout << "Division by zero. Please try again." << std::endl;
+        return 0;
+      }
+      result /= params[i];
+    }
+  }
+  return result;
+}
+
+void print_result(double result) {
+  // Print the result with a fixed number of decimal places
+  std::cout << "Result: " << std::fixed << std::setprecision(2) << result << std::endl;
+}
+
+void write_to_file(const Calculation& calc, std::ofstream& out) {
+  // Write the calculation to the file in the format:
+  // operation x y z ... result
+  out << calc.operation;
+  for (int i = 0; i < calc.parameters.size(); i++) {
+    out << " " << calc.parameters[i];
+  }
+  out << " " << calc.result << std::endl;
+}
+
+
+3. write a complex calculator console app in c++11 with pretty console interface, have instructions, uses struct for each type of calculations, shows the result in the console in a pretty way, and stores all the operation in json file
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <cmath>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
+
+// Struct for storing calculation history
+struct Calculation {
+  std::string operation;
+  std::vector<double> parameters;
+  double result;
+};
+
+// Struct for storing different types of calculations
+struct Calculator {
+  std::vector<Calculation> addition_history;
+  std::vector<Calculation> subtraction_history;
+  std::vector<Calculation> multiplication_history;
+  std::vector<Calculation> division_history;
+};
+
+// Function prototypes
+void print_instructions();
+bool is_valid_operation(const std::string& op);
+double calculate(const std::string& op, const std::vector<double>& params);
+void print_result(double result);
+void write_to_file(const Calculator& calc);
+
+int main() {
+  // Print instructions
+  print_instructions();
+
+  // Create a Calculator object to store calculation history
+  Calculator calc;
+
+  // Read and process input from the user
+  std::string operation;
+  std::vector<double> parameters;
+  double x;
+  while (std::cin >> operation) {
+    // Check if the operation is valid
+    if (!is_valid_operation(operation)) {
+      std::cout << "Invalid operation. Please try again." << std::endl;
+      continue;
+    }
+
+    // Read the parameters for the operation
+    parameters.clear();
+    while (std::cin >> x) {
+      parameters.push_back(x);
+    }
+
+    // Calculate the result of the operation
+    double result = calculate(operation, parameters);
+
+    // Print the result in a pretty way
+    print_result(result);
+
+    // Store the calculation in the appropriate history vector
+    Calculation calc_data;
+    calc_data.operation = operation;
+    calc_data.parameters = parameters;
+    calc_data.result = result;
+    if (operation == "+") {
+      calc.addition_history.push_back(calc_data);
+    }
+else if (operation == "-") {
+  calc.subtraction_history.push_back(calc_data);
+} else if (operation == "*") {
+  calc.multiplication_history.push_back(calc_data);
+} else if (operation == "/") {
+  calc.division_history.push_back(calc_data);
+}
+
+// Write the calculation history to a JSON file
+write_to_file(calc);
+
+return 0;
+}
+
+// Function definitions
+void print_instructions() {
+  std::cout << "Welcome to the calculator app!" << std::endl;
+  std::cout << "To perform a calculation, enter the operation followed by the parameters." << std::endl;
+  std::cout << "Supported operations: +, -, *, /" << std::endl;
+  std::cout << "For example: + 3 4" << std::endl;
+  std::cout << "Enter 'q' to quit the program." << std::endl;
+}
+
+bool is_valid_operation(const std::string& op) {
+  // Check if the operation is one of the supported operations
+  return (op == "+" || op == "-" || op == "*" || op == "/");
+}
+
+double calculate(const std::string& op, const std::vector<double>& params) {
+  // Check if there are at least two parameters for the operation
+  if (params.size() < 2) {
+    std::cout << "Not enough parameters for the operation. Please try again." << std::endl;
+    return 0;
+  }
+
+  // Perform the calculation based on the operation
+  double result = params[0];
+  for (int i = 1; i < params.size(); i++) {
+    if (op == "+") {
+      result += params[i];
+    } else if (op == "-") {
+      result -= params[i];
+    } else if (op == "*") {
+      result *= params[i];
+    } else if (op == "/") {
+      // Check for division by zero
+      if (params[i] == 0) {
+        std::cout << "Division by zero. Please try again." << std::endl;
+        return 0;
+	}
+
+
+4. write a complex calculator console app in c++17 with pretty console interface, has instructions, uses struct for each type of calculations, shows the result in the console in a pretty way, and stores all the operation in json file using rapid.json
+
+#include <iostream>
+#include <string>
+#include <cmath>
+#include <cstdio>
+
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+
+struct Calculator
+{
+    double result;
+    std::string operation;
+};
+
+Calculator add(double x, double y)
+{
+    Calculator calc;
+    calc.result = x + y;
+    calc.operation = "addition";
+    return calc;
+}
+
+Calculator subtract(double x, double y)
+{
+    Calculator calc;
+    calc.result = x - y;
+    calc.operation = "subtraction";
+    return calc;
+}
+
+Calculator multiply(double x, double y)
+{
+    Calculator calc;
+    calc.result = x * y;
+    calc.operation = "multiplication";
+    return calc;
+}
+
+Calculator divide(double x, double y)
+{
+    Calculator calc;
+    calc.result = x / y;
+    calc.operation = "division";
+    return calc;
+}
+
+void displayMenu()
+{
+    std::cout << "Calculator Menu" << std::endl;
+    std::cout << "----------------" << std::endl;
+    std::cout << "1. Addition" << std::endl;
+    std::cout << "2. Subtraction" << std::endl;
+    std::cout << "3. Multiplication" << std::endl;
+    std::cout << "4. Division" << std::endl;
+    std::cout << "5. Quit" << std::endl;
+}
+
+int getMenuChoice()
+{
+    int choice = 0;
+    std::cin >> choice;
+    return choice;
+}
+
+void performCalculation(int choice, double x, double y)
+{
+    Calculator result;
+    if (choice == 1)
+    {
+        result = add(x, y);
+    }
+    else if (choice == 2)
+    {
+        result = subtract(x, y);
+    }
+    else if (choice == 3)
+    {
+        result = multiply(x, y);
+    }
+    else if (choice == 4)
+    {
+        result = divide(x, y);
+    }
+
+    std::cout << "The result of " << result.operation << " is: " << result.result << std::endl;
+}
+
+int main()
+{
+    std::cout << "Welcome to the calculator app!" << std::endl;
+
+    displayMenu();
+    int choice = getMenuChoice();
+
+    while (choice != 5)
+    {
+        std::cout << "Enter the first number: ";
+        double x;
+        std::cin >> x;
+        std::cout << "Enter the second number: ";
+        double y;
+        std::cin >> y;
+
+performCalculation(choice, x, y);
+
+displayMenu();
+choice = getMenuChoice();
+}
+
+rapidjson::Document doc;
+doc.SetObject();
+rapidjson::Document::AllocatorType& alloc = doc.GetAllocator();
+doc.AddMember("addition", add(x, y).result, alloc);
+doc.AddMember("subtraction", subtract(x, y).result, alloc);
+doc.AddMember("multiplication", multiply(x, y).result, alloc);
+doc.AddMember("division", divide(x, y).result, alloc);
+
+rapidjson::StringBuffer buffer;
+rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+doc.Accept(writer);
+
+std::cout << "The JSON representation of the results is: " << buffer.GetString() << std::endl;
+
+return 0;
+}
+
+
+5.write a program that PROCESSING the data initialized by the user in the json files and stores all the oparation in the json format in history.json using rabbit json, uses struct, and is doing some operation with user data, calculating the age from the birth day to now, showing the result in a pretty way in the console and if its corret store the result in the json file
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <ctime> // for time() and localtime()
+#include <rabbit/rabbit.h> // for RabbitJSON
+
+// Struct to hold user data
+struct UserData
+{
+  std::string name;
+  std::string birth_date; // in the format "YYYY-MM-DD"
+};
+
+// Function to calculate age from birth date
+int calculateAge(const std::string& birth_date)
+{
+  // Parse the birth date to extract the year, month, and day
+  int year = std::stoi(birth_date.substr(0, 4));
+  int month = std::stoi(birth_date.substr(5, 2));
+  int day = std::stoi(birth_date.substr(8, 2));
+
+  // Get the current time
+  time_t current_time = time(0);
+  tm* now = localtime(&current_time);
+
+  // Calculate the age
+  int age = now->tm_year + 1900 - year;
+  if (now->tm_mon < month || (now->tm_mon == month && now->tm_mday < day))
+  {
+    // If the current month and day is before the birth month and day, subtract 1 from the age
+    age--;
+  }
+
+  return age;
+}
+
+int main()
+{
+  // Open the input file
+  std::ifstream input_file("user_data.json");
+  if (!input_file)
+  {
+    std::cerr << "Error: unable to open user_data.json" << std::endl;
+    return 1;
+  }
+
+  // Read the user data from the input file
+  UserData user_data;
+  input_file >> user_data.name >> user_data.birth_date;
+
+  // Calculate the age
+  int age = calculateAge(user_data.birth_date);
+
+  // Print the user data and calculated age in a pretty format
+  rabbit::object result;
+  result["name"] = user_data.name;
+  result["birth_date"] = user_data.birth_date;
+  result["age"] = age;
+  std::cout << rabbit::json(result) << std::endl;
+
+  // Prompt the user to confirm the results
+  std::cout << "Is the above information correct? (y/n) ";
+  std::string response;
+  std::cin >> response;
+
+  if (response == "y")
+  {
+    // Open the history file
+    std::ofstream history_file("history.json");
+    if (!history_file)
+    {
+      std::cerr << "Error: unable to open history.json" << std::endl;
+      return 1;
+    }
+
+    // Write the user data and calculated age to the history file in JSON format
+    history_file << rabbit::json(result) << std::endl;
+  }
+
+  return 0;
+}
+
+
